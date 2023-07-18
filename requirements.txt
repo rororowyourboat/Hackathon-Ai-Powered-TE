@@ -1,3 +1,5 @@
+radcad==0.8.4
+cadCAD_tools==0.0.1.4
 ipykernel
 typing_extensions
 ipython-autotime
@@ -6,13 +8,9 @@ nbconvert
 langchain
 openai
 streamlit
-hugchat
 streamlit-chat
 streamlit-extras
-python-dotenv
-wheel
-ocean-lib
-radcad==0.8.4
-cadCAD_tools==0.0.1.4
+hugchat
 altair
 huggingface_hub
+python-dotenv
