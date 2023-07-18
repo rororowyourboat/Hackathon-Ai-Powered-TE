@@ -1,4 +1,3 @@
-import pandas as pd
 import copy
 import os
 from dataclasses import dataclass
@@ -18,7 +17,6 @@ from radcad import Model, Simulation, Experiment
 from radcad.engine import Engine, Backend
 
 # types
-
 PERCENTAGE = float
 USD = float
 USD_PER_MONTH = float
@@ -26,10 +24,21 @@ MONTHS = int
 MULTIPLIER = float
 USD_PER_TOKEN = float
 TOKENS = int
-
 DELTA_TIME = 1
 Run = 1
 Timestep = 100
+
+# get the openaikey from keys.env file
+# Load environment variables from .env file
+load_dotenv()
+
+# Access the value of the environment variable
+OPENAI_API_KEY = os.getenv('OPENAI_KEY')
+HUGGINGFACEHUB_API_TOKEN = os.getenv('HUGGINGFACEHUB_API_TOKEN')
+
+# use the hugging face llm
+llm = HuggingFaceHub(repo_id="google/flan-t5-large", model_kwargs={"temperature": 1e-10})
+llm_demo1 = OpenAI(temperature=0, openai_api_key=OPENAI_API_KEY)
 
 
 def default(obj):
@@ -69,8 +78,6 @@ class Agents:
 
 
 # state variables
-
-
 private_round_size = system_params['private_raise'][0] / system_params['private_price'][0]
 public_round_size = system_params['public_raise'][0] / system_params['public_price'][0]
 
@@ -100,9 +107,6 @@ def correct_perc_total_token_supply(Investor_list):
     return None
 
 
-correct_perc_total_token_supply(Investor_list)
-
-
 @dataclass
 class StateVariables:
     # Investors
@@ -113,10 +117,6 @@ class StateVariables:
     # MarketCap_at_highest_round_price: USD = 0.0
     # Market_cap_at_1x_highest_round_valuation: USD = 0.0
 
-
-initial_state = StateVariables().__dict__
-
-Investor_df = pd.DataFrame(Investor_list)
 
 
 def p_monthly_unlocks(params, substep, state_history, prev_state, **kwargs):
@@ -146,55 +146,6 @@ def s_update_tokens(params, substep, state_history, prev_state, policy_input, **
     return ('Investors', agents)
 
 
-# def s_update_total(params, substep, state_history, prev_state, policy_input, **kwargs):
-#     new_tokens = policy_input['new_unlocks']
-#     total = prev_state['Total'] + sum(new_tokens)
-#     return ('Total', total)
-
-# def s_update_total_perc(params, substep, state_history, prev_state, policy_input, **kwargs):
-#     total = prev_state['Total'] + sum(policy_input['new_unlocks'])
-#     total_as_perc_of_total_supply = total/params['total_token_supply']
-#     return ('Total_as_perc_of_total_supply', total_as_perc_of_total_supply)
-
-
-state_update_blocks = [
-    {
-        'policies': {
-            'p_monthly_unlocks': p_monthly_unlocks,
-        },
-        'variables': {
-            # 'Total': s_update_total,
-            'Investors': s_update_tokens,
-            # 'Total_as_perc_of_total_supply': s_update_total_perc,
-
-        }
-
-    },
-
-]
-
-# config and run
-
-TIMESTEPS = 120
-RUNS = 1
-
-model = Model(initial_state=initial_state, state_update_blocks=state_update_blocks, params=system_params)
-simulation = Simulation(model=model, timesteps=TIMESTEPS, runs=RUNS)
-
-# simulation.model.params.update({
-#     '': [
-# 5
-#     ]
-# })
-
-experiment = Experiment(simulation)
-# Select the Pathos backend to avoid issues with multiprocessing and Jupyter Notebooks
-experiment.engine = Engine(backend=Backend.PATHOS)
-
-result = experiment.run()
-
-df = pd.DataFrame(result)
-
 
 # post processing 
 # extract types of investors from first row
@@ -216,20 +167,45 @@ def post_processing(df):
     return df2
 
 
-clean_df = post_processing(df)
+correct_perc_total_token_supply(Investor_list)
 
-# get the openaikey from keys.env file
+initial_state = StateVariables().__dict__
+
+Investor_df = pd.DataFrame(Investor_list)
 
 
-# Load environment variables from .env file
-load_dotenv()
+state_update_blocks = [
+    {
+        'policies': {
+            'p_monthly_unlocks': p_monthly_unlocks,
+        },
+        'variables': {
+            # 'Total': s_update_total,
+            'Investors': s_update_tokens,
+            # 'Total_as_perc_of_total_supply': s_update_total_perc,
 
-# Access the value of the environment variable
-OPENAI_API_KEY = os.getenv('OPENAI_KEY')
-HUGGINGFACEHUB_API_TOKEN = os.getenv('HUGGINGFACEHUB_API_TOKEN')
+        }
 
-# use the hugging face llm
-llm = HuggingFaceHub(repo_id="google/flan-t5-large", model_kwargs={"temperature": 1e-10})
+    },
+
+]
+
+# config and run
+TIMESTEPS = 120
+RUNS = 1
+#
+model = Model(initial_state=initial_state, state_update_blocks=state_update_blocks, params=system_params)
+simulation = Simulation(model=model, timesteps=TIMESTEPS, runs=RUNS)
+
+experiment = Experiment(simulation)
+# Select the Pathos backend to avoid issues with multiprocessing and Jupyter Notebooks
+experiment.engine = Engine(backend=Backend.PATHOS)
+
+# result = experiment.run()
+#
+# df = pd.DataFrame(result)
+#
+# clean_df = post_processing(df)
 
 
 def create_agent1():
@@ -315,61 +291,67 @@ def parsing_memory(string):
     return memory_database(string)
 
 
-llm_demo1 = OpenAI(temperature=0, openai_api_key=OPENAI_API_KEY)
-tools_demo1 = [
-    Tool(
-        name="model info",
-        func=parsing_model_info,
-        description="Use this tool when asked about system parameters like total token supply, raise amount",
-    ),
-    Tool(
-        name="memory vector database",
-        func=parsing_memory,
-        description="Use this tool only when asked about benchmarked data. ",
-    )
-
-]
-
-mrkl_demo1 = initialize_agent(
-    tools_demo1, llm_demo1, agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION, verbose=True
-)
-
-
 def agent_demo_1(input):
+    tools_demo1 = [
+        Tool(
+            name="model info",
+            func=parsing_model_info,
+            description="Use this tool when asked about system parameters like total token supply, raise amount",
+        ),
+        Tool(
+            name="memory vector database",
+            func=parsing_memory,
+            description="Use this tool only when asked about benchmarked data. ",
+        )
+
+    ]
+
+    mrkl_demo1 = initialize_agent(
+        tools_demo1, llm_demo1, agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION, verbose=True
+    )
     return mrkl_demo1.run(chain_demo1.run(input))
+
+
 # agent demo 2
 
 def rel_finder(a, b):
     return f"we can either reduce total supply or reduce Token Price to reduce FDV by 15%."
 
-def optimizer(r,a,b,c):
+
+def optimizer(r, a, b, c):
     return "We can either reduce Token price down to 0.08 or reduce token supply to 150 million"
+
 
 def parsing_multiplier(string):
     a, b = string.split(",")
     return rel_finder(str(a), str(b))
 
+
 def parising_optimizer(string):
-    r,a,b,c = string.split(",")
-    return optimizer(str(r),str(a),str(b),str(c))
+    r, a, b, c = string.split(",")
+    return optimizer(str(r), str(a), str(b), str(c))
 
-# llm_demo2 = OpenAI(temperature=0, openai_api_key=OPENAI_API_KEY)
-tools_demo2 = [
-    Tool(
-        name="relationship_finder",
-        func=parsing_multiplier,
-        description="useful as first step when you need to reduce FDV. The input to this tool should be a comma separated list of a string and a number of length two, representing the variable to change and percentage you want to reduce it by. For example, 'FDV,5' would be the input if you wanted to reduce FDV by 5%",
-    ),
-    Tool(
-        name="optimizer",
-        func=parising_optimizer,
-        description="useful as second step, when we know we can either reduce total supply or reduce Token Price to reduce FDV by 15%. The input to this tool should be a comma separated list of two strings and a number, representing the constant FDV, then the other 2 variales to change and percentage you want to reduce it by. For example, 'FDV, token_supply, token_price,15' would be the input if you wanted to reduce FDV by 15perc and knew token supply and token price affet FDV",
-    )
-
-]
-mrkl_demo2 = initialize_agent(
-    tools_demo2, llm_demo1, agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION, verbose=True
-)
 
 def agent_demo_2(input):
-    return mrkl_demo2.run('first use relationship finder and then use optimizer'+input)
+    tools_demo2 = [
+        Tool(
+            name="relationship_finder",
+            func=parsing_multiplier,
+            description="useful as first step when you need to reduce FDV. The input to this tool should be a comma separated list of a string and a number of length two, representing the variable to change and percentage you want to reduce it by. For example, 'FDV,5' would be the input if you wanted to reduce FDV by 5%",
+        ),
+        Tool(
+            name="optimizer",
+            func=parising_optimizer,
+            description="useful as second step, when we know we can either reduce total supply or reduce Token Price to reduce FDV by 15%. The input to this tool should be a comma separated list of two strings and a number, representing the constant FDV, then the other 2 variales to change and percentage you want to reduce it by. For example, 'FDV, token_supply, token_price,15' would be the input if you wanted to reduce FDV by 15perc and knew token supply and token price affet FDV",
+        )
+
+    ]
+    mrkl_demo2 = initialize_agent(
+        tools_demo2, llm_demo1, agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION, verbose=True
+    )
+
+    return mrkl_demo2.run('first use relationship finder and then use optimizer' + input)
+
+
+# def agent_demo_1(input):
+#     return 'demo 1'

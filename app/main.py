@@ -1,6 +1,7 @@
 import streamlit as st
 from streamlit_extras.add_vertical_space import add_vertical_space
 
+from model import agent_demo_1, agent_demo_2
 
 st.set_page_config(
     page_title="Token Sales Agent",
@@ -23,6 +24,7 @@ This is a prototype for an LLM interface that supports crypto projects in the de
     st.image('img/tea.png', use_column_width=True)
 
 agent_number = st.selectbox('Select Agent', ['Agent 1', 'Agent 2'])
+
 # Store AI generated responses
 if "messages" not in st.session_state.keys():
     st.session_state.messages = [{"role": "assistant", "content": "I'm TokenChat, How may I help you?"}]
@@ -34,14 +36,13 @@ for message in st.session_state.messages:
 
 
 def generate_response(agent_number, prompt):
-    agent_number = "0"
     response = ''
-    # if agent_number == 'Agent 1':
-    #     response = agent_demo_1(prompt)
-    # elif agent_number == 'Agent 2':
-    #     response = agent_demo_2(prompt)
-    # else:
-    #     st.error('Agent not found')
+    if agent_number == 'Agent 1':
+        response = agent_demo_1(prompt)
+    elif agent_number == 'Agent 2':
+        response = agent_demo_2(prompt)
+    else:
+        st.error('Agent not found')
     return response
 
 
@@ -61,4 +62,3 @@ if st.session_state.messages[-1]["role"] != "assistant":
 
     message = {"role": "assistant", "content": response}
     st.session_state.messages.append(message)
-
