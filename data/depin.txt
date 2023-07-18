@@ -4,3 +4,17 @@ It is observed that in the sector of DePIN projects the standard allocation sche
     - team less than 15%
     - liquidity around 5%
     - ecosystem+community (rest of the total allocation)
+
+It is observed that in the sector of DePIN projects the standard allocation schemes look like:
+    - private around 20%
+    - public around 5%
+    - team less than 15%
+    - liquidity around 5%
+    - ecosystem+community (rest of the total allocation)
+
+It is observed that in the sector of DePIN projects the standard allocation schemes look like:
+    - private around (rest of the total allocation)
+    - public around 10%
+    - team less than 10%
+    - liquidity around 5%
+    - ecosystem+community 10%
