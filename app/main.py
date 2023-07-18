@@ -1,11 +1,9 @@
 import streamlit as st
-from streamlit_chat import message
-from streamlit_extras.colored_header import colored_header
 from streamlit_extras.add_vertical_space import add_vertical_space
 
 
 st.set_page_config(
-    page_title="Agent based token engineering",
+    page_title="Token Sales Agent",
     page_icon=":)",
     layout="wide",
 )
@@ -22,6 +20,7 @@ This is a prototype for an LLM interface that supports crypto projects in the de
             'by [Token Engineering Academy](https://tokenengineering.net/)'
             '\n\n'
             'Github [Hackathon-Ai-Powered-TE](https://github.com/rororowyourboat/Hackathon-Ai-Powered-TE)')
+    st.image('img/tea.png', use_column_width=True)
 
 agent_number = st.selectbox('Select Agent', ['Agent 1', 'Agent 2'])
 # Store AI generated responses
