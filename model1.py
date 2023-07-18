@@ -241,12 +241,6 @@ HUGGINGFACEHUB_API_TOKEN = os.getenv('HUGGINGFACEHUB_API_TOKEN')
 llm=HuggingFaceHub(repo_id="google/flan-t5-large", model_kwargs={"temperature":1e-10})
 
 
-
-
-
-
-
-
 def create_agent1():
     
     temp1 = f"""
