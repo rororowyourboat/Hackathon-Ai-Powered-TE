@@ -355,3 +355,39 @@ def agent_demo_1(input):
 
 
 
+# agent demo 2
+
+def rel_finder(a, b):
+    return f"we can either reduce total supply or reduce Token Price to reduce FDV by 15%."
+
+def optimizer(r,a,b,c):
+    return "We can either reduce Token price down to 0.08 or reduce token supply to 150 million"
+
+def parsing_multiplier(string):
+    a, b = string.split(",")
+    return rel_finder(str(a), str(b))
+
+def parising_optimizer(string):
+    r,a,b,c = string.split(",")
+    return optimizer(str(r),str(a),str(b),str(c))
+
+# llm_demo2 = OpenAI(temperature=0, openai_api_key=OPENAI_API_KEY)
+tools_demo2 = [
+    Tool(
+        name="relationship_finder",
+        func=parsing_multiplier,
+        description="useful as first step when you need to reduce FDV. The input to this tool should be a comma separated list of a string and a number of length two, representing the variable to change and percentage you want to reduce it by. For example, 'FDV,5' would be the input if you wanted to reduce FDV by 5%",
+    ),
+    Tool(
+        name="optimizer",
+        func=parising_optimizer,
+        description="useful as second step, when we know we can either reduce total supply or reduce Token Price to reduce FDV by 15%. The input to this tool should be a comma separated list of two strings and a number, representing the constant FDV, then the other 2 variales to change and percentage you want to reduce it by. For example, 'FDV, token_supply, token_price,15' would be the input if you wanted to reduce FDV by 15perc and knew token supply and token price affet FDV",
+    )
+
+]
+mrkl_demo2 = initialize_agent(
+    tools_demo2, llm_demo1, agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION, verbose=True
+)
+
+def agent_demo_2(input):
+    return mrkl_demo2.run('first use relationship finder and then use optimizer'+input)
