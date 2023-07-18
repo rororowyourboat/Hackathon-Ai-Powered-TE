@@ -1,11 +1,10 @@
-radcad==0.8.4
 ipykernel==5.5.3
 typing_extensions
 ipython-autotime==0.3.1
 ipywidgets==7.6.3
 nbconvert==5.6.1
-cadCAD_tools==0.0.1.4
 langchain
 openai
 streamlit==1.14.0
 streamlit-chat
+python-dotenv
