@@ -8,3 +8,4 @@ openai
 streamlit==1.14.0
 streamlit-chat
 python-dotenv
+huggingface_hub
