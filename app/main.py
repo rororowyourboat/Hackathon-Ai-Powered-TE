@@ -24,27 +24,14 @@ This is a prototype for an LLM interface that supports crypto projects in the de
             'Github [Hackathon-Ai-Powered-TE](https://github.com/rororowyourboat/Hackathon-Ai-Powered-TE)')
 
 agent_number = st.selectbox('Select Agent', ['Agent 1', 'Agent 2'])
+# Store AI generated responses
+if "messages" not in st.session_state.keys():
+    st.session_state.messages = [{"role": "assistant", "content": "I'm TokenChat, How may I help you?"}]
 
-if 'generated' not in st.session_state:
-    st.session_state['generated'] = ["I'm TokenChat, How may I help you?"]
-
-if 'past' not in st.session_state:
-    st.session_state['past'] = ['Hi!']
-
-
-input_container = st.container()
-colored_header(label='', description='', color_name='blue-30')
-response_container = st.container()
-
-# User input
-## Function for taking user provided prompt as input
-def get_text():
-    input_text = st.text_input("You: ", "", key="input")
-    return input_text
-
-## Applying the user input box
-with input_container:
-    user_input = get_text()
+# Display existing chat messages
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.write(message["content"])
 
 
 def generate_response(agent_number, prompt):
@@ -59,15 +46,20 @@ def generate_response(agent_number, prompt):
     return response
 
 
-## Conditional display of AI generated responses as a function of user provided prompts
-with response_container:
-    if user_input:
-        response = generate_response(agent_number, user_input)
-        st.session_state.past.append(user_input)
-        st.session_state.generated.append(response)
-        
-    if st.session_state['generated']:
-        for i in range(len(st.session_state['generated'])):
-            message(st.session_state['past'][i], is_user=True, key=str(i) + '_user')
-            message(st.session_state['generated'][i], key=str(i))
+# Prompt for user input and save
+if prompt := st.chat_input():
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    with st.chat_message("user"):
+        st.write(prompt)
+
+# If last message is not from assistant, we need to generate a new response
+if st.session_state.messages[-1]["role"] != "assistant":
+    # Call LLM
+    with st.chat_message("assistant"):
+        with st.spinner("Thinking..."):
+            response = generate_response(agent_number, prompt)
+            st.write(response)
+
+    message = {"role": "assistant", "content": response}
+    st.session_state.messages.append(message)
 
