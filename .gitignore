@@ -136,3 +136,4 @@ dmypy.json
 /docs/source/_autosummary/
 
 /sbscorer/sblegos/TransactionAnalyserTest.py
+test_ocean2.ipynb
